@@ -1,0 +1,58 @@
+devices:
+  - id: pc1
+    type: Endpoint
+    name: PC1
+    params: { gateway: "10.0.0.1" }
+    interfaces:
+      - { iface: eth0, ip: "10.0.0.2", mac: "02:00:00:00:00:02" }
+
+  - id: pc2
+    type: Endpoint
+    name: PC2
+    params: { gateway: "192.168.1.1" }
+    interfaces:
+      - { iface: eth0, ip: "192.168.1.2", mac: "02:00:00:00:00:22" }
+
+  - id: router1
+    type: Router
+    name: Router1
+    interfaces:
+      - { iface: eth0, ip: "10.0.0.1",    mac: "02:00:00:00:00:01" }
+      - { iface: eth1, ip: "172.16.0.1",  mac: "02:00:00:00:00:11" }
+    routes:
+      - { network: "192.168.1.0/24", next_hop: "172.16.0.2" }
+
+  - id: router2
+    type: Router
+    name: Router2
+    interfaces:
+      - { iface: eth0, ip: "192.168.1.1", mac: "02:00:00:00:00:21" }
+      - { iface: eth1, ip: "172.16.0.2",  mac: "02:00:00:00:00:12" }
+    routes:
+      - { network: "10.0.0.0/24", next_hop: "172.16.0.1" }
+
+  - id: spoofer
+    type: Spoofer
+    name: Spoofer
+    params:
+      victim_ip: "10.0.0.2"
+      gateway_ip: "10.0.0.1"
+      iface: eth0
+      poison_interval: 0.1
+    interfaces:
+      - { iface: eth0, ip: "10.0.0.3", mac: "02:00:00:00:00:03" }
+
+  - id: switch
+    type: Switch
+    name: Switch1
+    interfaces:
+      - { iface: eth0, ip: "0.0.0.0", mac: "02:00:00:00:01:00" }
+      - { iface: eth1, ip: "0.0.0.0", mac: "02:00:00:00:01:01" }
+      - { iface: eth2, ip: "0.0.0.0", mac: "02:00:00:00:01:02" }
+
+links:
+  - { a: { dev: pc1,     iface: eth0 }, b: { dev: switch,  iface: eth0 } }
+  - { a: { dev: spoofer, iface: eth0 }, b: { dev: switch,  iface: eth1 } }
+  - { a: { dev: router1, iface: eth0 }, b: { dev: switch,  iface: eth2 } }
+  - { a: { dev: router1, iface: eth1 }, b: { dev: router2, iface: eth1 } }
+  - { a: { dev: router2, iface: eth0 }, b: { dev: pc2,     iface: eth0 } }

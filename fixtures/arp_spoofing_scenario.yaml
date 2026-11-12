@@ -1,0 +1,12 @@
+steps:
+  - start_spoofer: { dev: spoofer }
+  - wait: { until: "pc1.gateway_mac == spoofer.interfaces['eth0'].mac", timeout: 3 }
+  - wait: { until: "router1.arp_table.get(bytes_to_ipv4(ipv4_to_bytes('10.0.0.2'))) == spoofer.interfaces['eth0'].mac", timeout: 3 }
+  - send_udp: { dev: pc1, dst_ip: "192.168.1.2", dst_port: 8080, msg: "Hello from PC1!" }
+  - wait: { until: "pc2.received_messages", timeout: 3 }
+  - sleep: 0.3
+  - stop_spoofer: { dev: spoofer }
+  - wait: { until: "pc1.gateway_mac == router1.interfaces['eth0'].mac", timeout: 3 }
+  - send_udp: { dev: pc1, dst_ip: "192.168.1.2", dst_port: 8080, msg: "Message after restoration" }
+  - wait: { until: "len(pc2.received_messages) == 2", timeout: 3 }
+  - assert: { expr: "len(spoofer.intercepted) >= 1", message: "Spoofer must have intercepted at least one packet" }
